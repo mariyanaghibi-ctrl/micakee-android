@@ -27,7 +27,9 @@ jobs:
           ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
           echo "ROOT=$ROOT" >> $GITHUB_ENV
           echo "Android project found at: $ROOT"
-
+      - name: Replace MainActivity
+        run: |
+          cp MainActivity.kt "$ROOT/app/src/main/java/com/micakee/app/MainActivity.kt"
       - name: Configure AndroidX and JVM
         run: |
           echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
