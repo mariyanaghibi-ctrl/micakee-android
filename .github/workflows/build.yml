@@ -27,10 +27,18 @@ jobs:
           ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
           echo "ROOT=$ROOT" >> $GITHUB_ENV
           echo "Android project found at: $ROOT"
+
       - name: Enable AndroidX
         run: |
           echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
           echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
+
+      - name: Fix JVM target
+        run: |
+          sed -i 's/jvmTarget *= *"1.8"/jvmTarget = "17"/g' "$ROOT/app/build.gradle.kts"
+          sed -i 's/sourceCompatibility *= *JavaVersion.VERSION_1_8/sourceCompatibility = JavaVersion.VERSION_17/g' "$ROOT/app/build.gradle.kts"
+          sed -i 's/targetCompatibility *= *JavaVersion.VERSION_1_8/targetCompatibility = JavaVersion.VERSION_17/g' "$ROOT/app/build.gradle.kts"
+
       - name: Build APK
         run: |
           gradle -p "$ROOT" assembleDebug --no-daemon
