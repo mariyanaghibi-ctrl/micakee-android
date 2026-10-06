@@ -15,7 +15,7 @@ jobs:
         run: |
           rm -rf project
           mkdir project
-          unzip -o micakee_android_pro_v3_READY2.zip -d project
+          unzip -o micakee_android_pro_v3_READY2_FIXED.zip -d project
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
