@@ -27,7 +27,10 @@ jobs:
           ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
           echo "ROOT=$ROOT" >> $GITHUB_ENV
           echo "Android project found at: $ROOT"
-
+      - name: Enable AndroidX
+        run: |
+          echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
+          echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
       - name: Build APK
         run: |
           gradle -p "$ROOT" assembleDebug --no-daemon
