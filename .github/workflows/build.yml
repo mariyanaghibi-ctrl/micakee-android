@@ -13,6 +13,7 @@ jobs:
 
       - name: Extract ZIP
         run: |
+          rm -rf project
           mkdir project
           unzip -o micakee_android_pro_v3_READY2.zip -d project
 
@@ -21,10 +22,15 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Find Android project
+        run: |
+          ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
+          echo "ROOT=$ROOT" >> $GITHUB_ENV
+          echo "Android project found at: $ROOT"
+
       - name: Build APK
         run: |
-          cd project
-          gradle assembleDebug --no-daemon
+          gradle -p "$ROOT" assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
