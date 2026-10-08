@@ -84,13 +84,15 @@ class MainActivity : ComponentActivity() {
         when (screen) {
             "login" -> LoginScreen(mobile, { mobile = it }, busy, msg) { if (!Regex("09\\d{9}").matches(mobile)) { msg = "شماره موبایل ۱۱ رقمی معتبر وارد کن." } else { busy=true; msg="در حال ارسال کد..."; requestNonce++ } }
             "otp" -> OtpScreen(otp, { otp=it }, busy, msg, { screen="login"; otp="" }) { if (!Regex("\\d{6}").matches(otp)) msg="کد ۶ رقمی را وارد کن." else { busy=true; msg="در حال بررسی کد..."; verifyNonce++ } }
-            "home" -> HomeScreen({screen="profile"},{screen="recipes"},{screen="calc"},{screen="price"},{screen="design"},{screen="assistant"})
+            "home" -> HomeScreen({screen="profile"},{screen="recipes"},{screen="calc"},{screen="price"},{screen="design"},{screen="assistant"},{screen="mold"},{screen="subscribe"})
             "profile" -> ProfileScreen(token,{screen="home"}) { pref.edit().clear().apply(); token=""; mobile=""; screen="login" }
             "recipes" -> RecipesScreen(token){screen="home"}
             "calc" -> CalculatorScreen{screen="home"}
             "price" -> PriceScreen{screen="home"}
             "design" -> DesignScreen(token){screen="home"}
             "assistant" -> AssistantScreen(token){screen="home"}
+            "mold" -> MoldScreen{screen="home"}
+            "subscribe" -> SubscribeScreen{screen="home"}
         }
         LaunchedEffect(requestNonce) { if(requestNonce==0) return@LaunchedEffect; val r=api("/api/auth/request-otp","POST",JSONObject().put("mobile",mobile).toString()); busy=false; r.onSuccess { msg="کد ارسال شد ✨"; screen="otp" }.onFailure { msg="⚠️ ${it.message}" } }
         LaunchedEffect(verifyNonce) { if(verifyNonce==0) return@LaunchedEffect; val r=api("/api/auth/verify-otp","POST",JSONObject().put("mobile",mobile).put("code",otp).toString()); busy=false; r.onSuccess { val t=JSONObject(it).optString("token"); if(t.isBlank()) msg="پاسخ ورود نامعتبر است." else { pref.edit().putString("token",t).putString("mobile",mobile).apply(); token=t; msg=""; screen="home" } }.onFailure { msg="⚠️ ${it.message}" } }
@@ -110,20 +112,45 @@ class MainActivity : ComponentActivity() {
     Surface(Modifier.fillMaxSize(),color=Cream){Column(Modifier.fillMaxSize().padding(22.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center){Logo(Modifier.size(100.dp));Spacer(Modifier.height(18.dp));Text("تأیید ورود",fontSize=28.sp,fontWeight=FontWeight.ExtraBold,color=Ink);Text("کد ۶ رقمی پیامک را وارد کن",color=Muted);Spacer(Modifier.height(22.dp));OutlinedTextField(o,{if(it.length<=6)onO(it)},label={Text("کد تأیید")},singleLine=true,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp));Spacer(Modifier.height(12.dp));Button(onClick=onVerify,enabled=!busy,modifier=Modifier.fillMaxWidth().height(56.dp),shape=RoundedCornerShape(18.dp),colors=ButtonDefaults.buttonColors(containerColor=Teal)){Text(if(busy)"در حال بررسی..." else "تأیید و ورود",fontSize=17.sp,fontWeight=FontWeight.Bold)};TextButton(onClick=onBack){Text("ویرایش شماره",color=Teal)};if(msg.isNotBlank())Text(msg,color=Teal)}}
 }
 
-@Composable private fun HomeScreen(account:()->Unit,recipes:()->Unit,calc:()->Unit,price:()->Unit,design:()->Unit,assistant:()->Unit){
-    Scaffold(containerColor=Cream,bottomBar={Row(Modifier.fillMaxWidth().background(White).padding(vertical=8.dp),horizontalArrangement=Arrangement.SpaceEvenly){BottomButton("⌂","خانه"){};BottomButton("📖","دستورها"){recipes()};BottomButton("🧮","ابزار"){calc()};BottomButton("👤","حساب"){account()}}}){p->
+@Composable private fun HomeScreen(account:()->Unit,recipes:()->Unit,calc:()->Unit,price:()->Unit,design:()->Unit,assistant:()->Unit,mold:()->Unit,subscribe:()->Unit){
+    Scaffold(containerColor=Cream,bottomBar={
+        Row(Modifier.fillMaxWidth().background(White).padding(vertical=8.dp),horizontalArrangement=Arrangement.SpaceEvenly){
+            BottomButton("⌂","خانه"){}
+            BottomButton("📖","دستورها"){recipes()}
+            BottomButton("🧮","ابزار"){calc()}
+            BottomButton("👤","حساب"){account()}
+        }
+    }){p->
         Column(Modifier.fillMaxSize().padding(p).padding(horizontal=18.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(14.dp)){
-            Spacer(Modifier.height(6.dp))
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Logo(Modifier.size(64.dp));Spacer(Modifier.width(10.dp));Column(Modifier.weight(1f)){Text("mi.cakee",fontSize=26.sp,fontWeight=FontWeight.ExtraBold,color=Teal);Text("دستیار هوشمند قنادها",fontSize=12.sp,color=Muted)};Box(Modifier.size(46.dp).clip(CircleShape).background(White).clickable{account()},contentAlignment=Alignment.Center){Text("👩🏻‍🍳",fontSize=23.sp)}}
-            Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.padding(20.dp)){Text("سلام قناد جان 👋",fontSize=24.sp,fontWeight=FontWeight.ExtraBold,color=Ink);Spacer(Modifier.height(5.dp));Text("دنیای شیرینی‌های خاص، با هوش مصنوعی ✨",fontSize=14.sp,color=Muted);Spacer(Modifier.height(12.dp));Row(verticalAlignment=Alignment.CenterVertically){Text("اشتراک رایگان",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Teal,modifier=Modifier.background(Cream,RoundedCornerShape(50.dp)).padding(horizontal=12.dp,vertical=7.dp));Spacer(Modifier.weight(1f));Text("پروفایل من  ›",fontSize=13.sp,color=Teal,modifier=Modifier.clickable{account()})}}}
-            OutlinedTextField(value="",onValueChange={},readOnly=true,label={Text("جستجوی دستور، مواد اولیه یا سؤال از هوش مصنوعی...")},leadingIcon={Text("🔎",fontSize=19.sp)},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp),colors=OutlinedTextFieldDefaults.colors(unfocusedContainerColor=White,focusedContainerColor=White))
-            Card(Modifier.fillMaxWidth().height(205.dp).clickable{design()},shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=Teal)){Box(Modifier.fillMaxSize().padding(22.dp)){Column(Modifier.fillMaxHeight().fillMaxWidth(.80f),verticalArrangement=Arrangement.SpaceBetween){Column{Text("کیک رؤیایی‌ات را بساز ✨",fontSize=24.sp,fontWeight=FontWeight.ExtraBold,color=White);Spacer(Modifier.height(7.dp));Text("ایده‌ات را بگو؛ می‌کیک برایت طرح پیشنهادی می‌سازد.",fontSize=14.sp,color=White.copy(alpha=.88f))};Button(onClick=design,shape=RoundedCornerShape(16.dp),colors=ButtonDefaults.buttonColors(containerColor=Gold)){Text("شروع طراحی",color=Ink,fontWeight=FontWeight.Bold)}};Text("👑",fontSize=70.sp,modifier=Modifier.align(Alignment.BottomEnd))}}
-            Text("ابزارهای کاربردی",fontSize=20.sp,fontWeight=FontWeight.Bold,color=Ink)
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("🧁","تغییر مقدار مواد",calc);ToolCard("💰","قیمت‌گذاری",price)}
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("📖","دستورهای محبوب",recipes);ToolCard("🤖","دستیار AI",assistant)}
-            Card(Modifier.fillMaxWidth().clickable{assistant()},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=GoldSoft)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(54.dp).clip(CircleShape).background(White),contentAlignment=Alignment.Center){Text("🎙",fontSize=28.sp)};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text("سؤال صوتی از AI",fontSize=17.sp,fontWeight=FontWeight.Bold,color=Ink);Text("با صدای خودت سؤال بپرس و جواب بگیر",fontSize=13.sp,color=Muted)};Text("›",fontSize=29.sp,color=Teal)}}
-            Card(Modifier.fillMaxWidth().clickable{recipes()},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.padding(18.dp)){Row(verticalAlignment=Alignment.CenterVertically){Text("دستورهای محبوب",fontSize=18.sp,fontWeight=FontWeight.Bold,color=Ink);Spacer(Modifier.weight(1f));Text("مشاهده همه  ›",fontSize=13.sp,color=Teal)};Spacer(Modifier.height(8.dp));Text("برای سفارش بعدی ایده بگیر و دستورهای قنادی را سریع پیدا کن.",fontSize=13.sp,color=Muted)}}
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                Logo(Modifier.size(58.dp)); Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)){Text("mi.cakee",fontSize=25.sp,fontWeight=FontWeight.ExtraBold,color=Teal);Text("دستیار هوشمند قنادها",fontSize=13.sp,color=Muted)}
+                Box(Modifier.size(44.dp).clip(CircleShape).background(White).clickable{account()},contentAlignment=Alignment.Center){Text("👩🏻‍🍳",fontSize=22.sp)}
+            }
+            Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=White)){
+                Column(Modifier.padding(20.dp)){
+                    Text("سلام قناد جان 👋",fontSize=25.sp,fontWeight=FontWeight.ExtraBold,color=Ink)
+                    Text("دنیای شیرینی‌های خاص، با هوش مصنوعی ✨",fontSize=15.sp,color=Teal,fontWeight=FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp)); Text("دستورهای قنادی، محاسبه مواد، قیمت‌گذاری، طراحی کیک و خیلی بیشتر...",fontSize=13.sp,color=Muted)
+                }
+            }
+            Card(Modifier.fillMaxWidth().height(190.dp),shape=RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=Teal)){
+                Box(Modifier.fillMaxSize().padding(22.dp)){
+                    Column(Modifier.fillMaxHeight().fillMaxWidth(.84f),verticalArrangement=Arrangement.SpaceBetween){
+                        Column{Text("طراحی کیک با هوش مصنوعی",fontSize=23.sp,fontWeight=FontWeight.ExtraBold,color=White);Spacer(Modifier.height(6.dp));Text("رنگ، مناسبت، طبقات و تزیینات را بگو.",color=White.copy(alpha=.86f),fontSize=14.sp)}
+                        Button(onClick=design,shape=RoundedCornerShape(16.dp),colors=ButtonDefaults.buttonColors(containerColor=Gold)){Text("شروع طراحی  ✨",color=Ink,fontWeight=FontWeight.Bold)}
+                    }
+                    Text("👑",fontSize=68.sp,modifier=Modifier.align(Alignment.BottomEnd))
+                }
+            }
+            Text("ابزارهای محبوب",fontSize=20.sp,fontWeight=FontWeight.Bold,color=Ink)
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("🧁","محاسبه مواد",calc);ToolCard("💰","قیمت‌گذاری",price)}
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("📖","بانک دستورها",recipes);ToolCard("🤖","دستیار AI",assistant)}
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("📐","محاسبه قالب",mold);ToolCard("👑","اشتراک حرفه‌ای",subscribe)}
+            Card(Modifier.fillMaxWidth().clickable{assistant()},shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=GoldSoft)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp).clip(CircleShape).background(White),contentAlignment=Alignment.Center){Text("🎙",fontSize=25.sp)};Spacer(Modifier.width(12.dp));Column{Text("دستیار صوتی",fontWeight=FontWeight.Bold,color=Ink,fontSize=17.sp);Text("با صدای خودت سؤال بپرس",color=Muted,fontSize=13.sp)}}}
+            Card(Modifier.fillMaxWidth().clickable{subscribe()},shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=DeepTeal)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text("👑",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text("می‌کیک حرفه‌ای",fontWeight=FontWeight.Bold,color=White,fontSize=17.sp);Text("امکانات بیشتر برای قنادهای حرفه‌ای",color=White.copy(alpha=.8f),fontSize=13.sp)}Text("مشاهده",color=Gold,fontWeight=FontWeight.Bold)}}
+            Spacer(Modifier.height(10.dp))
         }
     }
 }
@@ -132,7 +159,7 @@ class MainActivity : ComponentActivity() {
     Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.clickable{onClick()}.padding(horizontal=14.dp)){Text(icon,fontSize=21.sp);Text(label,fontSize=11.sp,color=Teal)}
 }
 
-@Composable private fun RowScope.ToolCard(icon:String,title:String,onClick:()->Unit){Card(Modifier.weight(1f).height(128.dp).clickable{onClick()},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.SpaceBetween){Box(Modifier.size(48.dp).clip(CircleShape).background(Cream),contentAlignment=Alignment.Center){Text(icon,fontSize=25.sp)};Text(title,fontSize=15.sp,fontWeight=FontWeight.Bold,color=Ink)}}}
+@Composable private fun ToolCard(icon:String,title:String,onClick:()->Unit){Card(Modifier.weight(1f).height(128.dp).clickable{onClick()},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.SpaceBetween){Box(Modifier.size(48.dp).clip(CircleShape).background(Cream),contentAlignment=Alignment.Center){Text(icon,fontSize=25.sp)};Text(title,fontSize=15.sp,fontWeight=FontWeight.Bold,color=Ink)}}}
 
 
 @Composable private fun CalcRow(label:String,value:Int,unit:String){
@@ -196,38 +223,30 @@ private fun CalculatorScreen(back: () -> Unit) {
 
 @Composable
 private fun PriceScreen(back: () -> Unit) {
-    var cost by remember { mutableStateOf("") }
+    data class Item(val name:String,val amount:String,val price:String)
+    var items by remember { mutableStateOf(listOf(Item("آرد","",""),Item("شکر","",""),Item("تخم‌مرغ","",""))) }
     var margin by remember { mutableStateOf("30") }
-    val c = cost.toDoubleOrNull() ?: 0.0
-    val m = margin.toDoubleOrNull() ?: 0.0
-    val sale = c * (1 + m / 100)
-    SimplePage("قیمت‌گذاری و سود", back) {
-        OutlinedTextField(
-            value = cost,
-            onValueChange = { cost = it.filter(Char::isDigit) },
-            label = { Text("هزینه مواد (تومان)") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp)
-        )
-        Spacer(Modifier.height(10.dp))
-        OutlinedTextField(
-            value = margin,
-            onValueChange = { margin = it.filter(Char::isDigit) },
-            label = { Text("درصد سود") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp)
-        )
-        Spacer(Modifier.height(18.dp))
-        Card(
-            Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Teal)
-        ) {
-            Column(Modifier.padding(20.dp)) {
-                Text("قیمت پیشنهادی فروش", color = White)
-                Text("${sale.toLong()} تومان", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = Gold)
+    val total=items.sumOf{(it.price.toDoubleOrNull()?:0.0)}
+    val sale=total*(1+(margin.toDoubleOrNull()?:0.0)/100)
+    SimplePage("قیمت‌گذاری حرفه‌ای",back){
+        Text("هزینه هر ماده را جدا وارد کن؛ قیمت فروش خودکار محاسبه می‌شود.",color=Muted,fontSize=13.sp)
+        items.forEachIndexed{index,item->
+            Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=White)){
+                Column(Modifier.padding(14.dp)){
+                    Row(verticalAlignment=Alignment.CenterVertically){Text(item.name,fontWeight=FontWeight.Bold,color=Ink,modifier=Modifier.weight(1f));TextButton(onClick={items=items.filterIndexed{j,_->j!=index}}){Text("حذف",color=Teal)}}
+                    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                        OutlinedTextField(item.amount,{v->items=items.toMutableList().also{it[index]=item.copy(amount=v)}},label={Text("مقدار")},modifier=Modifier.weight(1f),singleLine=true,shape=RoundedCornerShape(14.dp))
+                        OutlinedTextField(item.price,{v->items=items.toMutableList().also{it[index]=item.copy(price=v.filter(Char::isDigit))}},label={Text("قیمت تومان")},modifier=Modifier.weight(1f),singleLine=true,shape=RoundedCornerShape(14.dp))
+                    }
+                }
             }
+            Spacer(Modifier.height(8.dp))
         }
+        Button(onClick={items=items+Item("ماده جدید","","")},modifier=Modifier.fillMaxWidth().height(50.dp),shape=RoundedCornerShape(16.dp),colors=ButtonDefaults.buttonColors(containerColor=White)){Text("+ افزودن ماده اولیه",color=Teal,fontWeight=FontWeight.Bold)}
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(margin,{margin=it.filter(Char::isDigit)},label={Text("درصد سود پیشنهادی")},singleLine=true,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp))
+        Spacer(Modifier.height(12.dp))
+        Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=Teal)){Column(Modifier.padding(20.dp)){Text("جمع هزینه مواد: ${total.toLong()} تومان",color=White,fontSize=16.sp);Spacer(Modifier.height(6.dp));Text("قیمت پیشنهادی فروش: ${sale.toLong()} تومان",color=Gold,fontSize=23.sp,fontWeight=FontWeight.ExtraBold)}}
     }
 }
 
@@ -339,6 +358,37 @@ private fun AssistantScreen(token: String, back: () -> Unit) {
         ) {
             Text(if (busy) "در حال پاسخ..." else "ارسال سؤال")
         }
+    }
+}
+
+
+@Composable private fun MoldScreen(back:()->Unit){
+    var diameter by remember{mutableStateOf("23")}
+    var baseEggs by remember{mutableStateOf("6")}
+    val d=diameter.toDoubleOrNull()?:23.0
+    val b=baseEggs.toDoubleOrNull()?:6.0
+    val eggs=(b*d*d/(23.0*23.0)).coerceAtLeast(1.0)
+    val cream=eggs/6.0*2.0
+    SimplePage("محاسبه قالب کیک",back){
+        Text("اندازه قالب را وارد کن تا مقدار تقریبی مواد و خامه محاسبه شود.",color=Muted,fontSize=13.sp)
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(diameter,{diameter=it.filter{c->c.isDigit()}},label={Text("قطر قالب (سانتی‌متر)")},singleLine=true,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp))
+        Spacer(Modifier.height(10.dp))
+        OutlinedTextField(baseEggs,{baseEggs=it.filter{c->c.isDigit()}},label={Text("تخم‌مرغ دستور پایه")},singleLine=true,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp))
+        Spacer(Modifier.height(14.dp))
+        Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.padding(20.dp)){Text("نتیجه تقریبی",fontSize=19.sp,fontWeight=FontWeight.Bold,color=Ink);Spacer(Modifier.height(10.dp));Text("تخم‌مرغ پیشنهادی: ${String.format("%.1f",eggs)} عدد",color=Teal,fontSize=17.sp);Text("خامه برای کیک خامه‌ای: حدود ${String.format("%.1f",cream)} کیلوگرم",color=Teal,fontSize=17.sp);Spacer(Modifier.height(8.dp));Text("برای دستورهای مختلف، ضریب دقیق را با دستور انتخابی تنظیم کن.",color=Muted,fontSize=12.sp)}}
+    }
+}
+
+@Composable private fun SubscribeScreen(back:()->Unit){
+    SimplePage("اشتراک حرفه‌ای",back){
+        Text("می‌کیک را برای کار حرفه‌ای قنادی ارتقا بده 👑",fontSize=20.sp,fontWeight=FontWeight.ExtraBold,color=Ink)
+        Text("این صفحه فعلاً انتخاب پلن را نشان می‌دهد؛ اتصال پرداخت واقعی بعداً به درگاه اضافه می‌شود.",color=Muted,fontSize=13.sp)
+        Spacer(Modifier.height(8.dp))
+        listOf("ماهانه" to "اشتراک ماهانه","۶ ماهه" to "مناسب استفاده مداوم","سالانه" to "به‌صرفه‌ترین گزینه").forEach{(title,sub)->
+            Card(Modifier.fillMaxWidth().clickable{},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp).clip(CircleShape).background(GoldSoft),contentAlignment=Alignment.Center){Text("👑")};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(title,fontWeight=FontWeight.Bold,fontSize=18.sp,color=Ink);Text(sub,color=Muted,fontSize=13.sp)}Text("انتخاب",color=Teal,fontWeight=FontWeight.Bold)}};Spacer(Modifier.height(10.dp))
+        }
+        Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=DeepTeal)){Column(Modifier.padding(18.dp)){Text("امکانات حرفه‌ای",fontWeight=FontWeight.Bold,color=White,fontSize=18.sp);Text("• طراحی هوشمند کیک\n• دستیار AI بیشتر\n• ابزارهای پیشرفته قیمت‌گذاری\n• امکانات و دستورهای بیشتر",color=White.copy(alpha=.9f),lineHeight=24.sp)}}
     }
 }
 
