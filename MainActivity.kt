@@ -149,7 +149,7 @@ class MainActivity : ComponentActivity() {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("📖","بانک دستورها",recipes);ToolCard("🤖","دستیار AI",assistant)}
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)){ToolCard("📐","محاسبه قالب",mold);ToolCard("👑","اشتراک حرفه‌ای",subscribe)}
             Card(Modifier.fillMaxWidth().clickable{assistant()},shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=GoldSoft)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp).clip(CircleShape).background(White),contentAlignment=Alignment.Center){Text("🎙",fontSize=25.sp)};Spacer(Modifier.width(12.dp));Column{Text("دستیار صوتی",fontWeight=FontWeight.Bold,color=Ink,fontSize=17.sp);Text("با صدای خودت سؤال بپرس",color=Muted,fontSize=13.sp)}}}
-            Card(Modifier.fillMaxWidth().clickable{subscribe()},shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=DeepTeal)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text("👑",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text("می‌کیک حرفه‌ای",fontWeight=FontWeight.Bold,color=White,fontSize=17.sp);Text("امکانات بیشتر برای قنادهای حرفه‌ای",color=White.copy(alpha=.8f),fontSize=13.sp)}Text("مشاهده",color=Gold,fontWeight=FontWeight.Bold)}}
+            Card(Modifier.fillMaxWidth().clickable{subscribe()},shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=DeepTeal)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Text("👑",fontSize=32.sp);Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text("می‌کیک حرفه‌ای",fontWeight=FontWeight.Bold,color=White,fontSize=17.sp);Text("امکانات بیشتر برای قنادهای حرفه‌ای",color=White.copy(alpha=.8f),fontSize=13.sp)};Text("مشاهده",color=Gold,fontWeight=FontWeight.Bold)}}
             Spacer(Modifier.height(10.dp))
         }
     }
@@ -159,7 +159,7 @@ class MainActivity : ComponentActivity() {
     Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.clickable{onClick()}.padding(horizontal=14.dp)){Text(icon,fontSize=21.sp);Text(label,fontSize=11.sp,color=Teal)}
 }
 
-@Composable private fun ToolCard(icon:String,title:String,onClick:()->Unit){Card(Modifier.weight(1f).height(128.dp).clickable{onClick()},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.SpaceBetween){Box(Modifier.size(48.dp).clip(CircleShape).background(Cream),contentAlignment=Alignment.Center){Text(icon,fontSize=25.sp)};Text(title,fontSize=15.sp,fontWeight=FontWeight.Bold,color=Ink)}}}
+@Composable private fun RowScope.ToolCard(icon:String,title:String,onClick:()->Unit){Card(Modifier.weight(1f).height(128.dp).clickable{onClick()},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Column(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.SpaceBetween){Box(Modifier.size(48.dp).clip(CircleShape).background(Cream),contentAlignment=Alignment.Center){Text(icon,fontSize=25.sp)};Text(title,fontSize=15.sp,fontWeight=FontWeight.Bold,color=Ink)}}}
 
 
 @Composable private fun CalcRow(label:String,value:Int,unit:String){
@@ -386,7 +386,7 @@ private fun AssistantScreen(token: String, back: () -> Unit) {
         Text("این صفحه فعلاً انتخاب پلن را نشان می‌دهد؛ اتصال پرداخت واقعی بعداً به درگاه اضافه می‌شود.",color=Muted,fontSize=13.sp)
         Spacer(Modifier.height(8.dp))
         listOf("ماهانه" to "اشتراک ماهانه","۶ ماهه" to "مناسب استفاده مداوم","سالانه" to "به‌صرفه‌ترین گزینه").forEach{(title,sub)->
-            Card(Modifier.fillMaxWidth().clickable{},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp).clip(CircleShape).background(GoldSoft),contentAlignment=Alignment.Center){Text("👑")};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(title,fontWeight=FontWeight.Bold,fontSize=18.sp,color=Ink);Text(sub,color=Muted,fontSize=13.sp)}Text("انتخاب",color=Teal,fontWeight=FontWeight.Bold)}};Spacer(Modifier.height(10.dp))
+            Card(Modifier.fillMaxWidth().clickable{},shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=White)){Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp).clip(CircleShape).background(GoldSoft),contentAlignment=Alignment.Center){Text("👑")};Spacer(Modifier.width(12.dp));Column(Modifier.weight(1f)){Text(title,fontWeight=FontWeight.Bold,fontSize=18.sp,color=Ink);Text(sub,color=Muted,fontSize=13.sp)};Text("انتخاب",color=Teal,fontWeight=FontWeight.Bold)}};Spacer(Modifier.height(10.dp))
         }
         Card(Modifier.fillMaxWidth(),shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=DeepTeal)){Column(Modifier.padding(18.dp)){Text("امکانات حرفه‌ای",fontWeight=FontWeight.Bold,color=White,fontSize=18.sp);Text("• طراحی هوشمند کیک\n• دستیار AI بیشتر\n• ابزارهای پیشرفته قیمت‌گذاری\n• امکانات و دستورهای بیشتر",color=White.copy(alpha=.9f),lineHeight=24.sp)}}
     }
