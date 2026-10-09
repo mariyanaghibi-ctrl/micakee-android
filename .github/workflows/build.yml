@@ -11,11 +11,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract ZIP
+      - name: Extract Android project
         run: |
-          rm -rf project
-          mkdir project
+          rm -rf project design_update
+          mkdir project design_update
           unzip -o micakee_android_pro_v11.zip -d project
+          unzip -o micakee_github_design_update.zip -d design_update
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -24,18 +25,22 @@ jobs:
 
       - name: Find Android project
         run: |
-          ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
+          ROOT=$(dirname "$(find project -type f \\( -name settings.gradle.kts -o -name settings.gradle \\) -print -quit)")
           echo "ROOT=$ROOT" >> $GITHUB_ENV
           echo "Android project found at: $ROOT"
-      - name: Replace MainActivity
+
+      - name: Apply MiCakee design update
         run: |
-          cp MainActivity.kt "$ROOT/app/src/main/java/com/micakee/app/MainActivity.kt"
+          cp design_update/micakee_update/MainActivity.kt "$ROOT/app/src/main/java/com/micakee/app/MainActivity.kt"
+          mkdir -p "$ROOT/app/src/main/res/drawable-nodpi"
+          cp design_update/micakee_update/app/src/main/res/drawable-nodpi/mi_cake_hero.png "$ROOT/app/src/main/res/drawable-nodpi/mi_cake_hero.png"
+
       - name: Configure AndroidX and JVM
         run: |
           echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
           echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
 
-          cat >> "$ROOT/app/build.gradle.kts" <<'EOF'
+          cat >> "$ROOT/app/build.gradle.kts" <<'GRADLE_EOF'
 
           android {
               compileOptions {
@@ -49,7 +54,7 @@ jobs:
                   jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
               }
           }
-          EOF
+          GRADLE_EOF
 
       - name: Build APK
         run: |
