@@ -1,3 +1,4 @@
+
 name: Build APK
 
 on:
@@ -6,7 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,14 +18,21 @@ jobs:
           unzip -o micakee_android_pro_v11.zip -d project
           unzip -o micakee_github_design_update.zip -d design_update
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+
       - name: Find Android project
         run: |
           ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
-          echo "ROOT=$ROOT" >> $GITHUB_ENV
+          echo "ROOT=$ROOT" >> "$GITHUB_ENV"
           echo "Android project found at: $ROOT"
 
       - name: Apply MiCakee design update
@@ -36,25 +43,11 @@ jobs:
 
       - name: Configure AndroidX and JVM
         run: |
+          touch "$ROOT/gradle.properties"
           echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
           echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> "$ROOT/gradle.properties"
           echo "org.gradle.workers.max=2" >> "$ROOT/gradle.properties"
-          cat >> "$ROOT/app/build.gradle.kts" <<'GRADLE_EOF'
-
-          android {
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-          }
-
-          kotlin {
-              compilerOptions {
-                  jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-              }
-          }
-          GRADLE_EOF
 
       - name: Build APK
         run: |
@@ -65,3 +58,5 @@ jobs:
         with:
           name: micakee-apk
           path: 'project/**/build/outputs/apk/**/*.apk'
+          if-no-files-found: error
+
