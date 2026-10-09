@@ -38,7 +38,8 @@ jobs:
         run: |
           echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
           echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
-
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> "$ROOT/gradle.properties"
+          echo "org.gradle.workers.max=2" >> "$ROOT/gradle.properties"
           cat >> "$ROOT/app/build.gradle.kts" <<'GRADLE_EOF'
 
           android {
