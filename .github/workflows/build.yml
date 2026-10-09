@@ -22,10 +22,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-
       - name: Find Android project
         run: |
-          ROOT=$(dirname "$(find project -type f \\( -name settings.gradle.kts -o -name settings.gradle \\) -print -quit)")
+          ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
           echo "ROOT=$ROOT" >> $GITHUB_ENV
           echo "Android project found at: $ROOT"
 
