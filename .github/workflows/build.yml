@@ -48,6 +48,25 @@ jobs:
           echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> "$ROOT/gradle.properties"
           echo "org.gradle.workers.max=2" >> "$ROOT/gradle.properties"
+          cat >> "$ROOT/app/build.gradle.kts" <<'GRADLE_EOF'
+
+          android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+          }
+
+          tasks.withType<JavaCompile>().configureEach {
+              options.release.set(17)
+          }
+
+          kotlin {
+              compilerOptions {
+                  jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+              }
+          }
+          GRADLE_EOF
 
       - name: Build APK
         run: |
@@ -59,4 +78,5 @@ jobs:
           name: micakee-apk
           path: 'project/**/build/outputs/apk/**/*.apk'
           if-no-files-found: error
+
 
