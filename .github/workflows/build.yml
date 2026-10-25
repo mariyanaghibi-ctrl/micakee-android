@@ -1,5 +1,4 @@
-
-name: Build APK
+name: Build MiCakee APK
 
 on:
   workflow_dispatch:
@@ -10,13 +9,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Extract Android project
-        run: |
-          rm -rf project design_update
-          mkdir project design_update
-          unzip -o micakee_android_pro_v11.zip -d project
-          unzip -o micakee_github_design_update.zip -d design_update
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -29,50 +21,19 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Find Android project
+      - name: Extract new project
         run: |
-          ROOT=$(dirname "$(find project -type f \( -name settings.gradle.kts -o -name settings.gradle \) -print -quit)")
-          echo "ROOT=$ROOT" >> "$GITHUB_ENV"
-          echo "Android project found at: $ROOT"
-
-      - name: Apply MiCakee design update
-        run: |
-          cp design_update/micakee_update/MainActivity.kt "$ROOT/app/src/main/java/com/micakee/app/MainActivity.kt"
-          mkdir -p "$ROOT/app/src/main/res/drawable-nodpi"
-          cp design_update/micakee_update/app/src/main/res/drawable-nodpi/mi_cake_hero.png "$ROOT/app/src/main/res/drawable-nodpi/mi_cake_hero.png"
-
-      - name: Configure AndroidX and JVM
-        run: |
-          touch "$ROOT/gradle.properties"
-          echo "android.useAndroidX=true" >> "$ROOT/gradle.properties"
-          echo "android.enableJetifier=true" >> "$ROOT/gradle.properties"
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g" >> "$ROOT/gradle.properties"
-          echo "org.gradle.workers.max=2" >> "$ROOT/gradle.properties"
-          cat >> "$ROOT/app/build.gradle.kts" <<'GRADLE_EOF'
-
-          android {
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_17
-                  targetCompatibility = JavaVersion.VERSION_17
-              }
-          }
-
-          kotlin {
-              compilerOptions {
-                  jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-              }
-          }
-          GRADLE_EOF
+          mkdir -p project
+          unzip -o micakee_android_v13_buildable.zip -d project
 
       - name: Build APK
-        run: |
-          gradle -p "$ROOT" assembleDebug --no-daemon
+        run: gradle -p project assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: micakee-apk
-          path: 'project/**/build/outputs/apk/**/*.apk'
+          name: MiCakee-new-APK
+          path: project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
 
