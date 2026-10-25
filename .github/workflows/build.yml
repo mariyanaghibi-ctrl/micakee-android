@@ -26,6 +26,11 @@ jobs:
           mkdir -p project
           unzip -o micakee_android_v13_buildable.zip -d project
 
+      - name: Enable AndroidX
+        
+
+        run: mkdir -p project && touch project/gradle.properties && echo "android.useAndroidX=true" >> project/gradle.properties
+
       - name: Build APK
         run: gradle -p project assembleDebug --no-daemon
 
