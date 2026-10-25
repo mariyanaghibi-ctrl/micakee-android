@@ -21,23 +21,30 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract new project
+      - name: Extract project
         run: |
           mkdir -p project
           unzip -o micakee_android_v13_buildable.zip -d project
 
       - name: Enable AndroidX
-        
-
-        run: mkdir -p project && touch project/gradle.properties && echo "android.useAndroidX=true" >> project/gradle.properties
-
-            - name: Align Java and Kotlin targets
         run: |
-          find project -type f \( -name "build.gradle" -o -name "build.gradle.kts" \) -exec sed -i \
-            -e 's/VERSION_1_8/VERSION_17/g' \
-            -e 's/"1.8"/"17"/g' \
-            -e "s/'1.8'/'17'/g" \
-            {} +
+          touch project/gradle.properties
+          grep -qxF 'android.useAndroidX=true' project/gradle.properties || echo 'android.useAndroidX=true' >> project/gradle.properties
+
+      - name: Align Java and Kotlin targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for p in Path("project").rglob("*"):
+              if p.name not in ("build.gradle", "build.gradle.kts"):
+                  continue
+              s = p.read_text()
+              s = s.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
+              s = s.replace("VERSION_1_8", "VERSION_17")
+              s = re.sub(r'(["\'])1\.8\1', r'"17"', s)
+              p.write_text(s)
+          PY
 
       - name: Build APK
         run: gradle -p project assembleDebug --no-daemon
@@ -48,5 +55,4 @@ jobs:
           name: MiCakee-new-APK
           path: project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
 
