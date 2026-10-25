@@ -31,9 +31,13 @@ jobs:
 
         run: mkdir -p project && touch project/gradle.properties && echo "android.useAndroidX=true" >> project/gradle.properties
 
-      - name: Align Java and Kotlin targets
+            - name: Align Java and Kotlin targets
         run: |
-          find project/app -type f \( -name "build.gradle" -o -name "build.gradle.kts" \) -exec sed -i 's/VERSION_1_8/VERSION_17/g; s/"1.8"/"17"/g' {} \;
+          find project -type f \( -name "build.gradle" -o -name "build.gradle.kts" \) -exec sed -i \
+            -e 's/VERSION_1_8/VERSION_17/g' \
+            -e 's/"1.8"/"17"/g' \
+            -e "s/'1.8'/'17'/g" \
+            {} +
 
       - name: Build APK
         run: gradle -p project assembleDebug --no-daemon
