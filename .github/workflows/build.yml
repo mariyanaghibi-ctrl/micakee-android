@@ -1,11 +1,17 @@
+
 name: Build MiCakee APK
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build.yml'
+      - 'micakee_android_v13_buildable_fixed.zip'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,26 +30,47 @@ jobs:
       - name: Extract project
         run: |
           mkdir -p project
-          unzip -o micakee_android_v13_buildable.zip -d project
+          unzip -o micakee_android_v13_buildable_fixed.zip -d project
 
       - name: Enable AndroidX
         run: |
           touch project/gradle.properties
           grep -qxF 'android.useAndroidX=true' project/gradle.properties || echo 'android.useAndroidX=true' >> project/gradle.properties
 
-      - name: Align Java and Kotlin targets
+      - name: Fix Java and Kotlin targets
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import re
-          for p in Path("project").rglob("*"):
+
+          root = Path("project")
+          for p in root.rglob("*"):
               if p.name not in ("build.gradle", "build.gradle.kts"):
                   continue
               s = p.read_text()
               s = s.replace("JavaVersion.VERSION_1_8", "JavaVersion.VERSION_17")
               s = s.replace("VERSION_1_8", "VERSION_17")
-              s = re.sub(r'(["\'])1\.8\1', r'"17"', s)
+              s = re.sub(r'(["\'])1\.8\1', '"17"', s)
               p.write_text(s)
+
+          groovy = root / "app" / "build.gradle"
+          if groovy.exists():
+              s = groovy.read_text()
+              s += """
+
+          // Force Java and Kotlin to use JVM 17
+          tasks.withType(JavaCompile).configureEach {
+              sourceCompatibility = '17'
+              targetCompatibility = '17'
+          }
+
+          tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+              kotlinOptions {
+                  jvmTarget = '17'
+              }
+          }
+          """
+              groovy.write_text(s)
           PY
 
       - name: Build APK
@@ -55,4 +82,5 @@ jobs:
           name: MiCakee-new-APK
           path: project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
 
