@@ -3,7 +3,7 @@ name: Build MiCakee APK
 
 on:
   workflow_dispatch:
-    push:
+  push:
     paths:
       - '.github/workflows/build.yml'
       - 'micakee_green_gold_scroll_update.zip'
