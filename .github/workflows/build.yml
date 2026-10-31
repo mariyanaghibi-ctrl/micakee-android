@@ -30,8 +30,7 @@ jobs:
       - name: Extract project
         run: |
           mkdir -p project
-          unzip -o micakee_android_v13_buildable_fixed.zip -d project
-
+            unzip -o micakee_android_v13_buildable_fixed2.zip -d project
       - name: Enable AndroidX
         run: |
           touch project/gradle.properties
