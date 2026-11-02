@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/build.yml'
       - 'MiCakee_Green_Gold_Update.zip'
+      - 'MiCakee_Home_Design_Update_fixed.zip'
 
 jobs:
   build:
@@ -30,7 +31,7 @@ jobs:
       - name: Extract project
         run: |
           mkdir -p project
-          unzip -o MiCakee_Green_Gold_Update.zip -d project
+          unzip -o MiCakee_Home_Design_Update_fixed.zip -d project
 
       - name: Enable AndroidX
         run: |
@@ -58,7 +59,6 @@ jobs:
               s = groovy.read_text()
               s += """
 
-          // Force Java and Kotlin to use JVM 17
           tasks.withType(JavaCompile).configureEach {
               sourceCompatibility = '17'
               targetCompatibility = '17'
@@ -82,6 +82,7 @@ jobs:
           name: MiCakee-new-APK
           path: project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          
           
 
 
