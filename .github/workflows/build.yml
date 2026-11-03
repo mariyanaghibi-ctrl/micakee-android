@@ -7,7 +7,7 @@ on:
     paths:
       - '.github/workflows/build.yml'
       - 'MiCakee_Green_Gold_Update.zip'
-      - 'MiCakee_Home_Design_Update_v4.zip'
+      - 'MiCakee_Home_Design_Update_v5.zip'
 
 jobs:
   build:
@@ -31,7 +31,7 @@ jobs:
       - name: Extract project
         run: |
           mkdir -p project
-          unzip -o MiCakee_Home_Design_Update_v4.zip -d project
+          unzip -o MiCakee_Home_Design_Update_v5.zip -d project
 
       - name: Enable AndroidX
         run: |
