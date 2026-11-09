@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/build.yml'
-      - 'MiCakee_Home_Design_Update_v7.zip'
+      - 'MiCakee-v7-ingredient-fix-ready.zip'
 
 jobs:
   build:
@@ -26,10 +26,10 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project
+      - name: Extract fixed project
         run: |
           mkdir -p project
-          unzip -o MiCakee_Home_Design_Update_v7.zip -d project
+          unzip -o MiCakee-v7-ingredient-fix-ready.zip -d project
 
       - name: Enable AndroidX
         run: |
@@ -77,7 +77,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MiCakee-v7-APK
+          name: MiCakee-fixed-APK
           path: project/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           
